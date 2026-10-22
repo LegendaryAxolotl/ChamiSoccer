@@ -71,14 +71,6 @@
     display: block;
     background: #1e293b;
   }
-  .controls-guide {
-    margin-top: 10px;
-    font-size: 0.85rem;
-    color: #cbd5e1;
-    text-align: center;
-    max-width: 1020px;
-    line-height: 1.4;
-  }
   .leaderboard-modal {
     display: none;
     position: fixed;
@@ -171,7 +163,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   const appId = typeof __app_id !== 'undefined' ? __app_id : 'soccer-cup-pro';
   const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
@@ -262,8 +254,6 @@
     onSnapshot(colRef, (snapshot) => {
       const leaderboardData = [];
       snapshot.forEach(doc => leaderboardData.push(doc.data()));
-      
-      // Memory side sorting: Wins first, then bestShootout
       leaderboardData.sort((a, b) => (b.wins - a.wins) || (b.bestShootout - a.bestShootout));
       renderLeaderboard(leaderboardData);
     }, (err) => console.error("Leaderboard snapshot error:", err));
@@ -393,17 +383,17 @@ const GOAL_HALF_HEIGHT = 65;
 const MATCH_FRAMES = 4500;
 
 const DIFFICULTY_PRESETS = {
-  1:  { name: 'Freshman',    aiSpeed: 2.1, aiTackleChance: 0.05, gkSpeed: 1.5, passFreq: 0.01 },
-  2:  { name: 'Junior Varsity',aiSpeed: 2.4, aiTackleChance: 0.10, gkSpeed: 1.8, passFreq: 0.02 },
-  3:  { name: 'Varsity',     aiSpeed: 2.8, aiTackleChance: 0.15, gkSpeed: 2.1, passFreq: 0.03 },
-  4:  { name: 'NSCHSAA All-Star', aiSpeed: 3.2, aiTackleChance: 0.20, gkSpeed: 2.4, passFreq: 0.04 },
-  5:  { name: 'State Champion',aiSpeed: 3.6, aiTackleChance: 0.30, gkSpeed: 2.7, passFreq: 0.05 },
-  6:  { name: 'East Region Elite', aiSpeed: 4.0, aiTackleChance: 0.40, gkSpeed: 3.0, passFreq: 0.06 },
-  7:  { name: 'National Contender', aiSpeed: 4.4, aiTackleChance: 0.50, gkSpeed: 3.4, passFreq: 0.08 },
-  8:  { name: 'Flyers Legend', aiSpeed: 4.8, aiTackleChance: 0.65, gkSpeed: 3.8, passFreq: 0.10 },
-  9:  { name: 'Gold Star Unbeatable', aiSpeed: 5.2, aiTackleChance: 0.80, gkSpeed: 4.2, passFreq: 0.12 },
-  10: { name: 'Chaminade Mythic', aiSpeed: 5.6, aiTackleChance: 0.95, gkSpeed: 4.6, passFreq: 0.15 },
-  11: { name: 'Shootout Mode Only', aiSpeed: 3.5, aiTackleChance: 0.30, gkSpeed: 3.0, passFreq: 0.05, isShootoutOnly: true }
+  1:  { name: 'Freshman',    aiSpeed: 2.2, aiTackleChance: 0.05, gkSpeed: 1.5, passFreq: 0.002, shootFreq: 0.04 },
+  2:  { name: 'Junior Varsity',aiSpeed: 2.5, aiTackleChance: 0.10, gkSpeed: 1.8, passFreq: 0.003, shootFreq: 0.08 },
+  3:  { name: 'Varsity',     aiSpeed: 2.9, aiTackleChance: 0.15, gkSpeed: 2.1, passFreq: 0.004, shootFreq: 0.12 },
+  4:  { name: 'NSCHSAA All-Star', aiSpeed: 3.3, aiTackleChance: 0.20, gkSpeed: 2.4, passFreq: 0.005, shootFreq: 0.16 },
+  5:  { name: 'State Champion',aiSpeed: 3.7, aiTackleChance: 0.30, gkSpeed: 2.7, passFreq: 0.006, shootFreq: 0.20 },
+  6:  { name: 'East Region Elite', aiSpeed: 4.1, aiTackleChance: 0.40, gkSpeed: 3.0, passFreq: 0.008, shootFreq: 0.25 },
+  7:  { name: 'National Contender', aiSpeed: 4.5, aiTackleChance: 0.50, gkSpeed: 3.4, passFreq: 0.010, shootFreq: 0.30 },
+  8:  { name: 'Flyers Legend', aiSpeed: 4.9, aiTackleChance: 0.65, gkSpeed: 3.8, passFreq: 0.012, shootFreq: 0.38 },
+  9:  { name: 'Gold Star Unbeatable', aiSpeed: 5.3, aiTackleChance: 0.80, gkSpeed: 4.2, passFreq: 0.015, shootFreq: 0.48 },
+  10: { name: 'Chaminade Mythic', aiSpeed: 5.7, aiTackleChance: 0.95, gkSpeed: 4.6, passFreq: 0.020, shootFreq: 0.60 },
+  11: { name: 'Shootout Mode Only', aiSpeed: 3.5, aiTackleChance: 0.30, gkSpeed: 3.0, passFreq: 0.005, shootFreq: 0.15, isShootoutOnly: true }
 };
 
 let difficultyLevel = 3;
@@ -455,6 +445,13 @@ addEventListener('keydown', e => {
     } else if (k === 'd' || k === 'arrowright') {
       difficultyLevel = Math.min(11, difficultyLevel + 1);
       return;
+    }
+  }
+
+  if (k === 'j') {
+    if (mode === 'match' && M) {
+      // Toggle between outfield player 1 (Index 1: #7) and outfield player 2 (Index 2: #10)
+      M.manualCtlIndex = M.manualCtlIndex === 2 ? 1 : 2;
     }
   }
 
@@ -595,46 +592,6 @@ cv.addEventListener('touchstart', e => {
 
 cv.addEventListener('touchend', () => actionRelease());
 
-// Safely attach listeners to optional mobile/pad control buttons if present
-const btnSprint = document.getElementById('btnSprint');
-if (btnSprint) {
-  btnSprint.addEventListener('touchstart', e => { e.preventDefault(); sprintHeld = true; });
-  btnSprint.addEventListener('touchend', e => { e.preventDefault(); sprintHeld = false; });
-}
-
-const btnPass = document.getElementById('btnPass');
-if (btnPass) {
-  btnPass.addEventListener('click', () => passP());
-}
-
-const btnTackle = document.getElementById('btnTackle');
-if (btnTackle) {
-  btnTackle.addEventListener('click', () => pokeP());
-}
-
-const btnShoot = document.getElementById('btnShoot');
-if (btnShoot) {
-  btnShoot.addEventListener('touchstart', e => { 
-    e.preventDefault(); 
-    if (mode === 'match' && M && M.ctl && M.ball.owner !== M.ctl) {
-      pokeP();
-    } else {
-      shotCharging = true; 
-      shotPower = 0; 
-    }
-  });
-  btnShoot.addEventListener('touchend', e => { e.preventDefault(); actionRelease(); });
-  btnShoot.addEventListener('mousedown', () => { 
-    if (mode === 'match' && M && M.ctl && M.ball.owner !== M.ctl) {
-      pokeP();
-    } else {
-      shotCharging = true; 
-      shotPower = 0; 
-    }
-  });
-  btnShoot.addEventListener('mouseup', () => actionRelease());
-}
-
 function getInput() {
   return {
     x: ((keys.arrowright || keys.d) ? 1 : 0) - ((keys.arrowleft || keys.a) ? 1 : 0),
@@ -695,7 +652,7 @@ function createPlayer(x, y, gk, team, jerseyNum) {
 
 function startMatch() {
   M = {
-    t: 0, sb: 0, sr: 0, pause: 0, msg: '', ctl: null,
+    t: 0, sb: 0, sr: 0, pause: 0, msg: '', ctl: null, manualCtlIndex: 1,
     stam: 100, tired: false, pokeCd: 0, wonT: 0,
     ball: { x: W/2, y: CY, z: 0, vx: 0, vy: 0, lock: 0, owner: null },
     B: [
@@ -716,7 +673,7 @@ function resetMatchPositions() {
     p.x = p.hx; p.y = p.hy; p.vx = p.vy = 0; p.stun = 0; p.hold = 0;
     p.face = p.team > 0 ? 0 : Math.PI;
   }
-  Object.assign(M.ball, { x: W/2, y: CY, z: 0, vx: 0, vy: 0, lock: 20, owner: null });
+  Object.assign(M.ball, { x: W/2, y: CY, z: 0, vx: 0, vy: 0, lock: 10, owner: null });
   M.msg = '';
 }
 
@@ -737,7 +694,7 @@ function applyPhysics(p) {
   if(p.vx !== 0 || p.vy !== 0) p.face = Math.atan2(p.vy, p.vx);
 }
 
-function releaseBall(vx, vy, lock = 10) {
+function releaseBall(vx, vy, lock = 8) {
   audio.playKick();
   const b = M.ball;
   b.owner = null;
@@ -755,7 +712,7 @@ function shootP(power = 50) {
   const mult = 6 + (power / 100) * 8;
   const targetY = CY + Math.sin(c.face) * 60;
   const dx = PR - c.x, dy = targetY - c.y, len = Math.hypot(dx, dy) || 1;
-  releaseBall((dx / len) * mult, (dy / len) * mult, 15);
+  releaseBall((dx / len) * mult, (dy / len) * mult, 12);
 }
 
 function passP() {
@@ -764,7 +721,7 @@ function passP() {
   const mate = M.B.find(p => p !== c && !p.gk);
   if(mate) {
     const dx = mate.x - c.x, dy = mate.y - c.y, len = Math.hypot(dx, dy) || 1;
-    releaseBall((dx / len) * 9.5, (dy / len) * 9.5, 10);
+    releaseBall((dx / len) * 9.5, (dy / len) * 9.5, 8);
   }
 }
 
@@ -782,7 +739,7 @@ function pokeP() {
     target.stun = 45;
     if(b.owner === target) {
       const dx = c.x - b.x, dy = c.y - b.y, len = Math.hypot(dx, dy) || 1;
-      releaseBall((-dx / len) * 4, (-dy / len) * 4, 8);
+      releaseBall((-dx / len) * 4, (-dy / len) * 4, 6);
     }
   }
 }
@@ -792,23 +749,15 @@ function aiGK(p, teamDir) {
   const b = M.ball, goalX = teamDir > 0 ? PL : PR;
   const dPreset = DIFFICULTY_PRESETS[difficultyLevel];
 
-  const nearOpponent = [...M.B, ...M.R].some(opp => opp.team !== p.team && Math.hypot(opp.x - p.x, opp.y - p.y) < 45);
-  if(nearOpponent || Math.hypot(b.x - p.x, b.y - p.y) < 35) {
-    if(b.owner === p || Math.hypot(b.x - p.x, b.y - p.y) < 40) {
-      releaseBall(teamDir * 11, (Math.random() - 0.5) * 7, 12);
-      p.hold = 0;
-      return;
-    }
-  }
-
   if(b.owner === p) {
     stepTowards(p, goalX + teamDir * 30, CY, dPreset.gkSpeed);
-    if(++p.hold > 25) {
+    if(++p.hold > 15) {
       p.hold = 0;
-      releaseBall(teamDir * 10, (Math.random() - 0.5) * 6, 12);
+      releaseBall(teamDir * 11, (Math.random() - 0.5) * 6, 8);
     }
     return;
   }
+
   p.hold = 0;
   const ballInArea = Math.abs(b.x - goalX) < 280;
   stepTowards(p, goalX + teamDir * 22, ballInArea ? Math.max(CY - GOAL_HALF_HEIGHT, Math.min(CY + GOAL_HALF_HEIGHT, b.y)) : CY, dPreset.gkSpeed);
@@ -822,37 +771,37 @@ function aiField(p, mate, teamDir) {
   if(p.tkCd > 0) p.tkCd--;
 
   if(b.owner === p) {
-    if(Math.abs(p.x - goalX) < 260 && Math.random() < 0.03 * difficultyLevel) {
-      const dx = goalX - p.x, dy = CY + (Math.random() - 0.5) * 100 - p.y, l = Math.hypot(dx, dy) || 1;
-      releaseBall((dx / l) * 10, (dy / l) * 10, 12);
+    const distToGoal = Math.hypot(goalX - p.x, CY - p.y);
+    
+    // Direct Aggressive Shot Execution - no looping passes!
+    if(distToGoal < 260 || Math.random() < dPreset.shootFreq) {
+      const cornerTargetY = CY + (Math.random() < 0.5 ? -GOAL_HALF_HEIGHT + 15 : GOAL_HALF_HEIGHT - 15);
+      const dx = goalX - p.x, dy = cornerTargetY - p.y, l = Math.hypot(dx, dy) || 1;
+      const shotSpeed = 10.0 + (difficultyLevel * 0.4);
+      releaseBall((dx / l) * shotSpeed, (dy / l) * shotSpeed, 10);
       return;
     }
-    if(mate && Math.random() < dPreset.passFreq) {
-      const dx = mate.x - p.x, dy = mate.y - p.y, l = Math.hypot(dx, dy) || 1;
-      releaseBall((dx / l) * 8.5, (dy / l) * 8.5, 10);
-      return;
-    }
-    stepTowards(p, goalX, CY + (p.y < CY ? -45 : 45), dPreset.aiSpeed);
+
+    // Drive forward directly toward user goal center
+    stepTowards(p, goalX, CY, dPreset.aiSpeed * 1.1);
     return;
   }
 
   if(b.owner && b.owner.team === teamDir) {
-    stepTowards(p, Math.max(80, Math.min(920, b.owner.x + teamDir * 100)), p.hy, dPreset.aiSpeed * 0.9);
+    // Teammate supporting run directly into attack zone
+    stepTowards(p, goalX, p.hy, dPreset.aiSpeed);
     return;
   }
 
-  if(Math.hypot(p.x - b.x, p.y - b.y) <= Math.hypot(mate.x - b.x, mate.y - b.y)) {
-    stepTowards(p, b.x, b.y, dPreset.aiSpeed);
-    if(b.owner && b.owner.team !== teamDir && !b.owner.gk && Math.hypot(p.x - b.x, p.y - b.y) < 30 && p.tkCd <= 0) {
-      p.tkCd = 40;
-      if(Math.random() < dPreset.aiTackleChance) {
-        p.pokeT = 10;
-        b.owner.stun = 35;
-        releaseBall((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, 8);
-      }
+  // Defending & Tackling: Chase ball aggressively
+  stepTowards(p, b.x, b.y, dPreset.aiSpeed * 1.05);
+  if(b.owner && b.owner.team !== teamDir && !b.owner.gk && Math.hypot(p.x - b.x, p.y - b.y) < 28 && p.tkCd <= 0) {
+    p.tkCd = 30;
+    if(Math.random() < dPreset.aiTackleChance) {
+      p.pokeT = 10;
+      b.owner.stun = 35;
+      releaseBall((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, 6);
     }
-  } else {
-    stepTowards(p, Math.max(80, Math.min(920, b.x - teamDir * 90)), p.hy, dPreset.aiSpeed * 0.85);
   }
 }
 
@@ -891,9 +840,15 @@ function updateMatch() {
   if(M.pokeCd > 0) M.pokeCd--;
   if(M.wonT > 0) M.wonT--;
 
-  let ctlPlayer = M.B[1];
-  if(Math.hypot(M.B[2].x - b.x, M.B[2].y - b.y) < Math.hypot(ctlPlayer.x - b.x, ctlPlayer.y - b.y)) ctlPlayer = M.B[2];
-  if(b.owner === M.B[1] || b.owner === M.B[2]) ctlPlayer = b.owner;
+  let ctlPlayer;
+  if (M.manualCtlIndex) {
+    ctlPlayer = M.B[M.manualCtlIndex];
+  } else {
+    ctlPlayer = M.B[1];
+  }
+  if (b.owner === M.B[1] || b.owner === M.B[2]) {
+    ctlPlayer = b.owner;
+  }
   M.ctl = ctlPlayer;
 
   const inp = getInput(), len = Math.hypot(inp.x, inp.y), mMag = Math.min(1, len);
@@ -1031,10 +986,10 @@ function penShoot() {
   penPhase = 'shot';
   audio.playKick();
 
-  const guessAccuracy = Math.min(0.95, 0.25 + (difficultyLevel * 0.07));
+  const guessAccuracy = Math.min(0.70, 0.15 + (difficultyLevel * 0.05));
 
   if (Math.random() < guessAccuracy) {
-    const inaccuracy = (11 - difficultyLevel) * 12;
+    const inaccuracy = (12 - difficultyLevel) * 16;
     const offset = (Math.random() - 0.5) * inaccuracy;
     keeper.targetX = Math.max(G3D.x + 30, Math.min(G3D.x + G3D.w - 30, aimPos.x + offset));
   } else {
@@ -1064,7 +1019,7 @@ function updatePen() {
         keeper.x = Math.min(G3D.x + G3D.w - 25, keeper.x + boostSpeed);
         keeper.isDiving = true;
       } else if (keys.d || keys.arrowright) {
-        keeper.x = Math.min(G3D.x + G3D.w - 25, keeper.x + normalSpeed);
+        keeper.x = Math.min(G3D.x + G3D.w - 25, keeper.x + boostSpeed);
       }
 
       if (!keys.q && !keys.e) {
@@ -1119,15 +1074,15 @@ function updatePen() {
       
       let saved = false;
       if(penRole === 'kicker') {
-        const saveRadius = 45 + (difficultyLevel * 3.5);
+        const saveRadius = 26 + (difficultyLevel * 1.8);
         saved = inGoal && Math.abs(pball.tx - keeper.x) < saveRadius;
 
         if(!inGoal) { penMsg = 'MISS!'; penResults.push('x'); }
         else if(saved) { penMsg = 'SAVED!'; penResults.push('x'); }
         else { audio.playCheer(); penMsg = 'GOAL!'; penScore++; penResults.push('o'); }
       } else {
-        const gkReachRadius = 60;
-        saved = inGoal && (Math.abs(pball.tx - keeper.x) < gkReachRadius) && (pball.ty > (G3D.y + G3D.h - 100 - Math.abs(keeper.jumpY)));
+        const gkReachRadius = keeper.isDiving ? 75 : 55;
+        saved = inGoal && (Math.abs(pball.tx - keeper.x) < gkReachRadius) && (pball.ty > (G3D.y + G3D.h - 130 - Math.abs(keeper.jumpY)));
 
         if(!inGoal) { penMsg = 'OPPONENT MISSED!'; aiPenResults.push('x'); }
         else if(saved) { audio.playCheer(); penMsg = 'FLYERS SAVE!'; aiPenResults.push('x'); }
@@ -1544,7 +1499,6 @@ function drawHumanPlayer(p, isControlled) {
 
   // OVERHEAD IDENTIFIERS & LABELS
   if (mode === 'match') {
-    // 1. Controlled player indicator (bright glowing ring + pulsing arrow)
     if (isControlled) {
       ctx.strokeStyle = '#facc15';
       ctx.lineWidth = 2.5;
@@ -1562,11 +1516,9 @@ function drawHumanPlayer(p, isControlled) {
       ctx.fill();
     }
 
-    // 2. Player Jersey Number Tag
     ctx.font = '800 11px Outfit';
     ctx.textAlign = 'center';
 
-    // Badge background for label readability
     const labelY = isControlled ? p.y - 42 : p.y - 22;
     const labelText = p.gk ? `GK #${p.jerseyNum}` : `#${p.jerseyNum}`;
 
@@ -1583,19 +1535,16 @@ function drawHumanPlayer(p, isControlled) {
 
 /* ---------- DRAWING GOLD STAR STADIUM PITCH & BLEACHERS ---------- */
 function drawPitch() {
-  // Background Stadium Apron
   ctx.fillStyle = '#0f172a';
   ctx.fillRect(0, 0, W, H);
 
-  // TOP STANDS & BLEACHERS
   ctx.fillStyle = '#334155';
-  ctx.fillRect(40, 0, 940, 50); // Concrete Base
+  ctx.fillRect(40, 0, 940, 50);
   ctx.fillStyle = '#475569';
   for(let y = 8; y <= 40; y += 12) {
-    ctx.fillRect(45, y, 930, 6); // Aluminum Benches
+    ctx.fillRect(45, y, 930, 6);
   }
 
-  // Draw Top Crowd
   const animTime = Date.now() * 0.005;
   topFans.forEach(fan => {
     const bob = Math.sin(animTime + fan.bobOffset) * 1.5;
@@ -1605,19 +1554,16 @@ function drawPitch() {
     ctx.fillRect(fan.x - 3.5, fan.y + 3.5 + bob, 7, 6);
   });
 
-  // Top Stadium Railing
   ctx.fillStyle = '#94a3b8';
   ctx.fillRect(40, 48, 940, 3);
 
-  // BOTTOM STANDS & BLEACHERS
   ctx.fillStyle = '#334155';
-  ctx.fillRect(40, 588, 940, 49); // Concrete Base
+  ctx.fillRect(40, 588, 940, 49);
   ctx.fillStyle = '#475569';
   for(let y = 594; y <= 624; y += 12) {
-    ctx.fillRect(45, y, 930, 6); // Aluminum Benches
+    ctx.fillRect(45, y, 930, 6);
   }
 
-  // Draw Bottom Crowd
   bottomFans.forEach(fan => {
     const bob = Math.cos(animTime + fan.bobOffset) * 1.5;
     ctx.fillStyle = fan.skin;
@@ -1626,11 +1572,9 @@ function drawPitch() {
     ctx.fillRect(fan.x - 3.5, fan.y + 3.5 + bob, 7, 6);
   });
 
-  // Bottom Stadium Railing
   ctx.fillStyle = '#94a3b8';
   ctx.fillRect(40, 586, 940, 3);
 
-  // STADIUM BANNER BOARDS
   ctx.fillStyle = '#7f1d1d';
   ctx.fillRect(180, 52, 220, 22);
   ctx.fillRect(620, 52, 220, 22);
@@ -1645,7 +1589,6 @@ function drawPitch() {
   ctx.fillText('GOLD STAR STADIUM', 290, 67);
   ctx.fillText('HOME OF THE FLYERS', 730, 67);
 
-  // MAIN TURF FIELD
   ctx.fillStyle = '#15803d';
   ctx.fillRect(PL, PT, PR - PL, PB - PT);
 
@@ -1655,7 +1598,6 @@ function drawPitch() {
     ctx.fillRect(PL + i * stripeWidth, PT, stripeWidth, PB - PT);
   }
 
-  // FIELD BOUNDARY & LINES
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
   ctx.lineWidth = 3;
 
@@ -1680,14 +1622,12 @@ function drawPitch() {
   ctx.textAlign = 'center';
   ctx.fillText('CHAMINADE HIGH SCHOOL', W / 2, CY - 80);
 
-  // PENALTY BOXES
   const boxH = 210;
   const boxW = 130;
 
   ctx.strokeRect(PL, CY - boxH / 2, boxW, boxH);
   ctx.strokeRect(PR - boxW, CY - boxH / 2, boxW, boxH);
 
-  // GOAL POSTS & NETTING
   ctx.lineWidth = 5;
   ctx.strokeStyle = '#ffffff';
 
@@ -1698,7 +1638,6 @@ function drawPitch() {
   ctx.strokeRect(PR, CY - GOAL_HALF_HEIGHT, 20, GOAL_HALF_HEIGHT * 2);
   ctx.fillRect(PR, CY - GOAL_HALF_HEIGHT, 20, GOAL_HALF_HEIGHT * 2);
 
-  // STADIUM FLOODLIGHT CORNER TOWERS
   const lights = [[20, 15], [980, 15], [20, 615], [980, 615]];
   lights.forEach(([lx, ly]) => {
     ctx.fillStyle = '#0f172a';
@@ -1851,7 +1790,6 @@ function drawMatchOver() {
   ctx.fillText('MAIN MENU', W / 2, 448);
 }
 
-/* ---------- DRAWING PAUSE MENU OVERLAY ---------- */
 function drawPauseMenu() {
   ctx.fillStyle = 'rgba(26, 5, 10, 0.9)';
   ctx.fillRect(0, 0, W, H);
